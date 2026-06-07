@@ -537,19 +537,13 @@ function renderizarMes() {
     let cls = `dia-card ${tipo}`;
     if (ehHoje) cls += ' hoje';
 
-    let climaHtml = '';
-    if (clima) {
-      const umStr = clima.umidade ? ` ${clima.umidade}%💧` : '';
-      climaHtml = `<div class="dia-clima">${wmoIcon(clima.code)}</div>
-                   <div class="dia-temp">${clima.min}°-${clima.max}°${umStr}</div>`;
-    }
+
 
         const tipoLbl = feriado ? 'Feriado' : tipo === 'folga' ? 'Folga' : tipo === 'work' ? 'Turno' : tipo === 'extra' ? 'Extra' : '';
     html += '<div class="' + cls + '" onclick="abrirDia(\'' + key + '\')">'
           + (temNota ? '<div class="dia-nota-dot"></div>' : '')
           + '<div class="dia-num">' + d + '</div>'
           + '<div class="dia-tipo-lbl">' + tipoLbl + '</div>'
-          + climaHtml
           + '</div>';
   }
 
