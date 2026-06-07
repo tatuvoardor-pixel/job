@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MAX.CORE TURNO</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="manifest" id="manifest-placeholder">
+<meta name="theme-color" content="#09090b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root {
+    --bg:    #09090b;
+    --s1:    #111113;
+    --s2:    #1a1a1f;
+    --bd:    #2a2a30;
+    --tx:    #e5e5e5;
+    --t2:    #a0a0b0;
+    --t3:    #555566;
+    --grn:   #22c55e;
+    --org:   #f97316;
+    --red:   #ef4444;
+    --acc:   #2dd4bf;
+    --pur:   #a855f7;
+    --yel:   #eab308;
+    --folga-bg:    rgba(34,197,94,0.12);
+    --folga-bd:    rgba(34,197,94,0.45);
+    --work-bg:     rgba(249,115,22,0.12);
+    --work-bd:     rgba(249,115,22,0.45);
+    --today-ring:  #2dd4bf;
+    --feriado-bg:  rgba(168,85,247,0.15);
+    --feriado-bd:  rgba(168,85,247,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { overflow-x: hidden; background: var(--bg); }
+  body { background: var(--bg); color: var(--tx); font-family: 'Lilita One', cursive; min-height: 100vh; overflow-x: hidden; width: 100%; max-width: 100vw; padding-bottom: env(safe-area-inset-bottom, 12px); }
+  * { box-sizing: border-box; max-width: 100%; }
+
+  /* ── SPLASH ── */
+  #splash {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; transition: opacity 0.5s;
+  }
+  #splash svg { width: 72px; height: 72px; margin-bottom: 16px; }
+  #splash h1 { font-size: 1.6rem; letter-spacing: 4px; color: var(--org); text-transform: uppercase; }
+  #splash p  { font-size: 0.65rem; color: var(--t3); letter-spacing: 3px; margin-top: 6px; text-transform: uppercase; }
+
+  /* ── HEADER ── */
+  #header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--bd);
+    overflow: hidden;
+  }
+  #header-left { display: flex; align-items: center; gap: 10px; }
+  #header-icon { width: 32px; height: 32px; }
+  #header-title { font-size: 0.9rem; letter-spacing: 0.5px; color: var(--org); text-transform: uppercase; white-space: nowrap; }
+  #header-sub   { font-size: 0.5rem; color: var(--t3); letter-spacing: 0; text-transform: uppercase; margin-top: 1px; }
+  #header-date  { font-size: 0.58rem; color: var(--t2); letter-spacing: 0.5px; text-align: right; line-height: 1.4; white-space: nowrap; }
+
+  /* ── STATUS BAR ── */
+  #status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px;
+    background: var(--s1);
+    border-bottom: 1px solid var(--bd);
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .status-chip {
+    display: flex; align-items: center; gap: 4px;
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 20px; padding: 4px 8px;
+    font-size: 0.62rem; letter-spacing: 0; text-transform: uppercase;
+    white-space: nowrap; flex-shrink: 1; min-width: 0;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  #chip-hoje-dot  { background: var(--acc); }
+  #chip-prox-dot  { background: var(--yel); }
+
+  /* ── NAV MÊS ── */
+  #nav-mes {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px 6px;
+    overflow: hidden;
+  }
+  #nav-mes button {
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 6px 10px;
+    color: var(--t2); font-family: 'Lilita One', cursive;
+    font-size: 0.7rem; cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0; text-transform: uppercase; flex-shrink: 0;
+  }
+  #nav-mes button:active { background: var(--bd); }
+  #lbl-mes { font-size: 0.85rem; letter-spacing: 0; color: var(--tx); text-transform: uppercase; white-space: nowrap; }
+
+  /* ── GRADE DE DIAS ── */
+  #calendario-wrap {
+    padding: 0 6px 6px;
+    overflow: hidden;
+    width: 100%;
+    touch-action: pan-y;
+  }
+  .dias-semana {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px; margin-bottom: 2px;
+  }
+  .dia-semana-lbl {
+    text-align: center; font-size: 0.52rem;
+    color: var(--t3); letter-spacing: 0;
+    text-transform: uppercase; padding: 2px 0;
+  }
+  .dia-semana-lbl.dom { color: #ef4444aa; }
+  .dia-semana-lbl.sab { color: #60a5faaa; }
+
+  .grade {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px; width: 100%;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .grade.sair-esq { transform: translateX(-100%); opacity: 0; }
+  .grade.sair-dir  { transform: translateX(100%);  opacity: 0; }
+  .grade.entrar-dir { transform: translateX(100%);  opacity: 0; }
+  .grade.entrar-esq { transform: translateX(-100%); opacity: 0; }
+
+  .dia-card {
+    border-radius: 7px; padding: 4px 2px;
+    aspect-ratio: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1px; cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.15s;
+    position: relative;
+    -webkit-user-select: none; user-select: none;
+  }
+  .dia-card:active { transform: scale(0.93); }
+  .dia-card.vazio  { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+
+  /* Tipos de dia */
+  .dia-card.folga  { background: var(--folga-bg); border-color: var(--folga-bd); }
+  .dia-card.work   { background: var(--work-bg);  border-color: var(--work-bd); }
+  .dia-card.feriado{ background: var(--feriado-bg); border-color: var(--feriado-bd); }
+  .dia-card.extra  { background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.45); }
+  .dia-card.hoje   { outline: 2px solid var(--today-ring); outline-offset: 1px; }
+
+  .dia-num {
+    font-size: 0.85rem; color: var(--tx); line-height: 1;
+    font-family: 'Lilita One', cursive;
+  }
+  .dia-card.folga  .dia-num { color: var(--grn); }
+  .dia-card.work   .dia-num { color: var(--org); }
+  .dia-card.feriado .dia-num { color: var(--pur); }
+  .dia-card.extra  .dia-num { color: var(--yel); }
+
+  .dia-tipo-lbl {
+    font-size: 0.38rem; letter-spacing: 0.5px; text-transform: uppercase;
+    opacity: 0.85; text-align: center; line-height: 1.1;
+  }
+  .dia-card.folga  .dia-tipo-lbl { color: var(--grn); }
+  .dia-card.work   .dia-tipo-lbl { color: var(--org); }
+  .dia-card.feriado .dia-tipo-lbl { color: var(--pur); }
+  .dia-card.extra  .dia-tipo-lbl { color: var(--yel); }
+
+  .dia-clima { font-size: 0.7rem; line-height: 1; }
+  .dia-temp  { font-size: 0.48rem; color: var(--t2); letter-spacing: 0.5px; }
+
+  .dia-nota-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--acc); position: absolute;
+    top: 3px; right: 3px;
+  }
+
+  /* ── LEGENDA ── */
+  #legenda {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 6px 10px; border-top: 1px solid var(--bd);
+    border-bottom: 1px solid var(--bd);
+  }
+  .leg-item { display: flex; align-items: center; gap: 4px; font-size: 0.54rem; color: var(--t2); letter-spacing: 0; }
+  .leg-dot  { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ── MODAL DIA ── */
+  #modal-dia {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 100;
+    align-items: flex-end; justify-content: center;
+  }
+  #modal-dia.show { display: flex; }
+  #modal-box {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 100vw; max-height: 85vh;
+    padding: 16px 14px 28px;
+    overflow-y: auto; overflow-x: hidden;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  #modal-handle {
+    width: 40px; height: 4px; background: var(--bd);
+    border-radius: 2px; margin: 0 auto 16px;
+  }
+  #modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--bd);
+  }
+  #modal-data { font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; }
+  #modal-tipo-chip {
+    font-size: 0.65rem; padding: 4px 12px; border-radius: 20px;
+    font-family: 'Lilita One', cursive; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* Clima do modal */
+  #modal-clima {
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  #modal-clima-lbl { font-size: 0.58rem; color: var(--t3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  #modal-clima-row { display: flex; align-items: center; gap: 12px; }
+  #modal-clima-icon { font-size: 2rem; }
+  #modal-clima-info { display: flex; flex-direction: column; gap: 2px; }
+  #modal-clima-temp { font-size: 1.4rem; color: var(--tx); }
+  #modal-clima-desc { font-size: 0.65rem; color: var(--t2); letter-spacing: 1px; text-transform: uppercase; }
+  #modal-clima-extra { font-size: 0.6rem; color: var(--t3); }
+
+  /* Feriado info */
+  #modal-feriado {
+    background: var(--feriado-bg); border: 1px solid var(--feriado-bd);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 0.72rem; color: var(--pur); display: none;
+  }
+
+  /* Mudar tipo */
+  #modal-mudar { margin-bottom: 14px; }
+  #modal-mudar-lbl { font-size: 0.58rem; color: var(--t3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  #modal-tipos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .tipo-btn {
+    padding: 8px 4px; border-radius: 8px; font-family: 'Lilita One', cursive;
+    font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+    border: 1px solid var(--bd); background: var(--s2); color: var(--t2);
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .tipo-btn.ativo { color: #fff; }
+  .tipo-btn.t-folga.ativo  { background: var(--folga-bg); border-color: var(--folga-bd); color: var(--grn); }
+  .tipo-btn.t-work.ativo   { background: var(--work-bg);  border-color: var(--work-bd);  color: var(--org); }
+  .tipo-btn.t-feriado.ativo{ background: var(--feriado-bg); border-color: var(--feriado-bd); color: var(--pur); }
+  .tipo-btn.t-extra.ativo  { background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.45); color: var(--yel); }
+
+  /* Checklist */
+  #modal-checklist { }
+  #modal-check-lbl { font-size: 0.58rem; color: var(--t3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  #check-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .check-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .check-box {
+    width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--bd);
+    background: transparent; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .check-box.done { background: var(--acc); border-color: var(--acc); }
+  .check-box.done::after { content: '✓'; color: #000; font-size: 0.75rem; font-weight: 900; }
+  .check-txt {
+    flex: 1; font-size: 0.85rem; color: var(--tx);
+    font-family: 'Roboto Mono', monospace; font-weight: 400;
+    background: transparent; border: none; outline: none;
+  }
+  .check-txt.done { text-decoration: line-through; color: var(--t3); }
+  .check-del { color: var(--t3); cursor: pointer; font-size: 1.1rem; padding: 0 4px; }
+  .check-del:active { color: var(--red); }
+
+  #check-add-row {
+    display: flex; gap: 8px;
+  }
+  #check-novo-input {
+    flex: 1; background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 12px; color: var(--tx);
+    font-family: 'Roboto Mono', monospace; font-size: 0.85rem;
+    outline: none;
+  }
+  #check-novo-input:focus { border-color: var(--acc); }
+  #check-add-btn {
+    background: var(--acc); border: none; border-radius: 8px;
+    padding: 10px 16px; color: #000; font-family: 'Lilita One', cursive;
+    font-size: 0.85rem; cursor: pointer;
+  }
+
+  #modal-fechar {
+    width: 100%; margin-top: 16px;
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 12px;
+    color: var(--t2); font-family: 'Lilita One', cursive;
+    font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer;
+  }
+
+
+  /* ── CHECKLIST MENSAL ── */
+  #btn-lista-mes {
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 6px 12px;
+    color: var(--acc); font-family: 'Lilita One', cursive;
+    font-size: 0.75rem; cursor: pointer; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #modal-lista {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88); z-index: 100;
+    align-items: flex-end; justify-content: center;
+  }
+  #modal-lista.show { display: flex; }
+  #lista-box {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-height: 80vh;
+    padding: 20px 18px 32px;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  #lista-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--bd);
+  }
+  #lista-titulo { font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; color: var(--acc); }
+  .lista-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+    cursor: pointer;
+    transition: opacity 0.3s, transform 0.3s, max-height 0.3s;
+    overflow: hidden; max-height: 60px;
+  }
+  .lista-item.feito {
+    opacity: 0; transform: translateX(40px); max-height: 0;
+    padding: 0; margin: 0; border: none;
+    pointer-events: none;
+  }
+  .lista-item-txt {
+    flex: 1; font-size: 0.85rem;
+    font-family: 'Roboto Mono', monospace; font-weight: 400;
+    color: var(--tx);
+  }
+  .lista-check-icon { font-size: 1.1rem; flex-shrink: 0; }
+  #lista-add-row { display: flex; gap: 8px; margin-top: 10px; }
+  #lista-novo-input {
+    flex: 1; background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 12px; color: var(--tx);
+    font-family: 'Roboto Mono', monospace; font-size: 0.85rem; outline: none;
+  }
+  #lista-novo-input:focus { border-color: var(--acc); }
+  #lista-add-btn {
+    background: var(--acc); border: none; border-radius: 8px;
+    padding: 10px 16px; color: #000;
+    font-family: 'Lilita One', cursive; font-size: 0.85rem; cursor: pointer;
+  }
+  #lista-fechar {
+    width: 100%; margin-top: 14px;
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 12px; color: var(--t2);
+    font-family: 'Lilita One', cursive; font-size: 0.85rem;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--s2); border: 1px solid var(--bd);
+    color: var(--acc); padding: 10px 20px; border-radius: 10px;
+    font-size: 0.75rem; letter-spacing: 1px;
+    z-index: 999; opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#09090b"/>
+    <!-- Ícone: calendário com raio -->
+    <rect x="18" y="22" width="64" height="58" rx="8" fill="none" stroke="#f97316" stroke-width="5"/>
+    <line x1="18" y1="38" x2="82" y2="38" stroke="#f97316" stroke-width="4"/>
+    <line x1="32" y1="14" x2="32" y2="28" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+    <line x1="68" y1="14" x2="68" y2="28" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+    <!-- Raio -->
+    <polyline points="55,48 44,64 52,64 41,80" fill="none" stroke="#22c55e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <h1>TURNO</h1>
+  <p>MAX.CORE Technology Corp.®</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+
+<!-- CHECKLIST MENSAL -->
+<div id="modal-lista">
+  <div id="lista-box">
+    <div id="lista-header">
+      <div id="lista-titulo">📋 Lista do Mês</div>
+      <div id="lista-contagem" style="font-size:0.65rem;color:var(--t3);letter-spacing:1px">0 itens</div>
+    </div>
+    <div id="lista-itens"></div>
+    <div id="lista-add-row">
+      <input id="lista-novo-input" type="text" placeholder="Adicionar tarefa..." maxlength="80"
+             onkeydown="if(event.key==='Enter')addListaItem()">
+      <button id="lista-add-btn" onclick="addListaItem()">+</button>
+    </div>
+    <button id="lista-fechar" onclick="fecharListaMes()">← Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL DIA -->
+<div id="modal-dia">
+  <div id="modal-box">
+    <div id="modal-handle"></div>
+    <div id="modal-header">
+      <div id="modal-data">--</div>
+      <div id="modal-tipo-chip">--</div>
+    </div>
+
+    <!-- Clima -->
+    <div id="modal-clima">
+      <div id="modal-clima-lbl">🌤 Previsão do Tempo</div>
+      <div id="modal-clima-row">
+        <div id="modal-clima-icon">⏳</div>
+        <div id="modal-clima-info">
+          <div id="modal-clima-temp">--°C</div>
+          <div id="modal-clima-desc">Carregando...</div>
+          <div id="modal-clima-extra"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fase da Lua -->
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.72rem;color:var(--t2);">
+        <div style="font-size:0.55rem;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">🌙 Fase da Lua</div>
+        <div id="modal-lua" style="font-size:0.9rem;color:var(--tx);">--</div>
+    </div>
+
+    <!-- Feriado -->
+    <div id="modal-feriado">🎉 <span id="modal-feriado-nome">Feriado</span></div>
+
+    <!-- Mudar tipo -->
+    <div id="modal-mudar">
+      <div id="modal-mudar-lbl">Tipo do dia</div>
+      <div id="modal-tipos">
+        <div class="tipo-btn t-folga" onclick="mudarTipo('folga')">🟢 Folga</div>
+        <div class="tipo-btn t-work"  onclick="mudarTipo('work')">🟠 Turno</div>
+        <div class="tipo-btn t-extra" onclick="mudarTipo('extra')">⭐ Extra</div>
+        <div class="tipo-btn t-feriado" onclick="mudarTipo('feriado')">🎉 Feriado</div>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div id="modal-checklist">
+      <div id="modal-check-lbl">📋 Notas / Checklist</div>
+      <div id="check-lista"></div>
+      <div id="check-add-row">
+        <input id="check-novo-input" type="text" placeholder="Adicionar nota..." maxlength="80"
+               onkeydown="if(event.key==='Enter')addCheck()">
+        <button id="check-add-btn" onclick="addCheck()">+</button>
+      </div>
+    </div>
+
+    <button id="modal-fechar" onclick="fecharModal()">← Fechar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;overflow-x:hidden;width:100%;max-width:100vw;">
+  <!-- HEADER -->
+  <div id="header">
+    <div id="header-left">
+      <svg id="header-icon" viewBox="0 0 100 100" fill="none">
+        <rect x="12" y="16" width="76" height="72" rx="10" fill="none" stroke="#f97316" stroke-width="6"/>
+        <line x1="12" y1="34" x2="88" y2="34" stroke="#f97316" stroke-width="5"/>
+        <line x1="30" y1="8"  x2="30" y2="22" stroke="#f97316" stroke-width="6" stroke-linecap="round"/>
+        <line x1="70" y1="8"  x2="70" y2="22" stroke="#f97316" stroke-width="6" stroke-linecap="round"/>
+        <polyline points="58,44 46,62 55,62 43,82" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div id="header-title">MAX.CORE TURNO</div>
+        <div id="header-sub">Escala 2×2 · Clima · Notas</div>
+      </div>
+    </div>
+    <div id="header-date">--</div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <div class="status-chip">
+      <div class="chip-dot" id="chip-hoje-dot"></div>
+      <span id="chip-hoje">Hoje: --</span>
+    </div>
+    <div class="status-chip">
+      <div class="chip-dot" id="chip-prox-dot"></div>
+      <span id="chip-prox">--</span>
+    </div>
+  </div>
+
+  <!-- NAV MÊS -->
+  <div id="nav-mes">
+    <button onclick="mudarMes(-1)">‹</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="lbl-mes">-- ----</div>
+      <button id="btn-lista-mes" onclick="abrirListaMes()">📋</button>
+    </div>
+    <button onclick="mudarMes(1)">›</button>
+  </div>
+
+  <!-- CALENDÁRIO -->
+  <div id="calendario-wrap">
+    <div class="dias-semana">
+      <div class="dia-semana-lbl dom">Dom</div>
+      <div class="dia-semana-lbl">Seg</div>
+      <div class="dia-semana-lbl">Ter</div>
+      <div class="dia-semana-lbl">Qua</div>
+      <div class="dia-semana-lbl">Qui</div>
+      <div class="dia-semana-lbl sab">Sex</div>
+      <div class="dia-semana-lbl sab">Sáb</div>
+    </div>
+    <div id="grade" class="grade"></div>
+  </div>
+
+  <!-- LEGENDA -->
+  <div id="legenda">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--grn)"></div>Folga</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--org)"></div>Turno 18-06h</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--yel)"></div>Extra</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pur)"></div>Feriado</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--acc);border-radius:50%"></div>Tem nota</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// ÂNCORA DO CICLO 2×2
+// Eliezer: 07/06/2025 = FOLGA (dia 1 do bloco folga)
+// Ciclo: FOLGA FOLGA WORK WORK FOLGA FOLGA WORK WORK ...
+// ═══════════════════════════════════════════════════
+const ANCORA = new Date(2026, 5, 7); // 07/06/2026 = FOLGA
+// Posição 0 = folga, 1 = folga, 2 = work, 3 = work
+const CICLO = ['folga','folga','work','work'];
+
+function tipoCiclo(data) {
+  const d = new Date(data); d.setHours(0,0,0,0);
+  const a = new Date(ANCORA); a.setHours(0,0,0,0);
+  const diff = Math.round((d - a) / 86400000);
+  let pos = ((diff % 4) + 4) % 4;
+  return CICLO[pos];
+}
+
+// ═══════════════════════════════════════════════════
+// FERIADOS — Brasil Nacional + São Paulo
+// ═══════════════════════════════════════════════════
+function calcularFeriados(ano) {
+  // Páscoa (algoritmo de Meeus/Jones/Butcher)
+  const f = ano;
+  const a=f%19, b=Math.floor(f/100), c=f%100;
+  const d=Math.floor(b/4), e=b%4, g=Math.floor((8*b+13)/25);
+  const h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4), k=c%4;
+  const l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+19*l)/433);
+  const n=Math.floor((h+l-7*m+90)/25);
+  const p=(h+l-7*m+33*n+19)%32;
+  const pascoa = new Date(ano, n-1, p);
+
+  const d2 = (m,d) => `${ano}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const dp = (offset) => { const dd=new Date(pascoa); dd.setDate(dd.getDate()+offset); return dd.toISOString().split('T')[0]; };
+
+  const feriados = {
+    // Nacionais
+    [d2(1,1)]:   '🎆 Confraternização Universal',
+    [dp(-48)]:   '🎭 Carnaval (Segunda)',
+    [dp(-47)]:   '🎭 Carnaval (Terça)',
+    [dp(-46)]:   '🎭 Quarta de Cinzas',
+    [dp(-2)]:    '✝️ Sexta-Feira Santa',
+    [dp(0)]:     '✝️ Páscoa',
+    [d2(4,21)]:  '🇧🇷 Tiradentes',
+    [d2(5,1)]:   '👷 Dia do Trabalho',
+    [dp(60)]:    '✝️ Corpus Christi',
+    [d2(9,7)]:   '🇧🇷 Independência',
+    [d2(10,12)]: '🇧🇷 Nossa Sra. Aparecida',
+    [d2(11,2)]:  '🕯️ Finados',
+    [d2(11,15)]: '🇧🇷 Proclamação da República',
+    [d2(12,25)]: '🎄 Natal',
+    // São Paulo
+    [d2(1,25)]:  '🏙️ Aniversário de São Paulo',
+    [d2(7,9)]:   '🏭 Revolução Constitucionalista',
+    [d2(11,20)]: '✊ Consciência Negra',
+    // Araçariguama
+    [d2(5,19)]:  '🎂 Aniversário de Araçariguama',
+    [d2(9,16)]:  '🎉 Feriado Municipal — Araçariguama',
+  };
+  return feriados;
+}
+
+// ═══════════════════════════════════════════════════
+// CLIMA — Open-Meteo (sem chave, gratuito)
+// Caieiras, SP — lat: -23.36, lon: -46.74
+// ═══════════════════════════════════════════════════
+let climaCache = {};
+
+async function buscarClima() {
+  const hoje = new Date();
+  const fim  = new Date(); fim.setDate(fim.getDate() + 7);
+  const fmt = d => d.toISOString().split('T')[0];
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=-23.36&longitude=-46.74&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&hourly=relativehumidity_2m&forecast_days=8&timezone=America/Sao_Paulo`;
+    const r = await fetch(url);
+    const data = await r.json();
+    // Mapear datas para cache
+    data.daily.time.forEach((dt, i) => {
+      // Calcular umidade média do dia (horas 6-22)
+      let umidadeMedia = null;
+      if (data.hourly && data.hourly.relativehumidity_2m) {
+        const horasDia = data.hourly.relativehumidity_2m.slice(i*24+6, i*24+22);
+        if (horasDia.length > 0) {
+          umidadeMedia = Math.round(horasDia.reduce((a,b)=>a+b,0)/horasDia.length);
+        }
+      }
+      climaCache[dt] = {
+        max:      Math.round(data.daily.temperature_2m_max[i]),
+        min:      Math.round(data.daily.temperature_2m_min[i]),
+        chuva:    data.daily.precipitation_probability_max[i] || 0,
+        code:     data.daily.weathercode[i] || 0,
+        umidade:  umidadeMedia,
+        vento:    null
+      };
+    });
+    localStorage.setItem('turno_clima', JSON.stringify({ ts: Date.now(), dados: climaCache }));
+    renderizarMes();
+  } catch(e) {
+    // Sem internet — tudo bem, usa cache
+  }
+}
+
+function wmoIcon(code) {
+  if (code === 0)           return '☀️';
+  if (code <= 2)            return '🌤️';
+  if (code <= 3)            return '☁️';
+  if (code <= 49)           return '🌫️';
+  if (code <= 57)           return '🌧️';
+  if (code <= 67)           return '🌧️';
+  if (code <= 77)           return '🌨️';
+  if (code <= 82)           return '🌦️';
+  if (code <= 86)           return '🌨️';
+  if (code <= 99)           return '⛈️';
+  return '🌡️';
+}
+
+function wmoDesc(code) {
+  if (code === 0)  return 'Céu limpo';
+  if (code <= 2)   return 'Parcialmente nublado';
+  if (code <= 3)   return 'Nublado';
+  if (code <= 49)  return 'Neblina';
+  if (code <= 57)  return 'Garoa';
+  if (code <= 67)  return 'Chuva';
+  if (code <= 77)  return 'Neve';
+  if (code <= 82)  return 'Chuva forte';
+  if (code <= 86)  return 'Neve forte';
+  if (code <= 99)  return 'Tempestade';
+  return 'Variável';
+}
+
+
+// ═══════════════════════════════════════════════════
+// FASE DA LUA — Algoritmo astronômico preciso
+// Referência: nova lua conhecida 6 Jan 2000 18:14 UTC
+// Ciclo: 29.53059 dias
+// ═══════════════════════════════════════════════════
+const FASES_LUA = ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+const NOMES_LUA = [
+    'Lua Nova','Crescente','Quarto Crescente','Gibosa Crescente',
+    'Lua Cheia','Gibosa Minguante','Quarto Minguante','Minguante'
+];
+
+function calcularFaseLua(data) {
+    const CICLO = 29.53059;
+    const REF   = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+    const diff  = (new Date(data) - REF) / 86400000;
+    const pos   = ((diff % CICLO) + CICLO) % CICLO;
+    const idx   = Math.round((pos / CICLO) * 8) % 8;
+    return { emoji: FASES_LUA[idx], nome: NOMES_LUA[idx], pos: pos.toFixed(1) };
+}
+
+// ═══════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════
+let mesSelecionado = new Date().getMonth();
+let anoSelecionado = new Date().getFullYear();
+let diaSelecionado = null;
+let overrides = {}; // { 'YYYY-MM-DD': 'folga'|'work'|'extra'|'feriado' }
+let notas = {};     // { 'YYYY-MM-DD': [{txt, done},...] }
+
+const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function keyDia(d) {
+  const dd = new Date(d); dd.setHours(12);
+  return dd.toISOString().split('T')[0];
+}
+
+function tipoFinal(data) {
+  const k = keyDia(data);
+  if (overrides[k]) return overrides[k];
+  const feriados = calcularFeriados(new Date(data).getFullYear());
+  if (feriados[k]) return 'feriado';
+  return tipoCiclo(data);
+}
+
+// ═══════════════════════════════════════════════════
+// RENDERIZAR MÊS
+// ═══════════════════════════════════════════════════
+function renderizarMes() {
+  const grade = document.getElementById('grade');
+  const hoje  = new Date(); hoje.setHours(0,0,0,0);
+
+  document.getElementById('lbl-mes').textContent =
+    MESES_PT[mesSelecionado] + ' ' + anoSelecionado;
+
+  const primeiroDia = new Date(anoSelecionado, mesSelecionado, 1);
+  const ultimoDia   = new Date(anoSelecionado, mesSelecionado + 1, 0);
+  const inicioSemana = primeiroDia.getDay(); // 0=Dom
+
+  let html = '';
+
+  // Dias vazios antes
+  for (let i = 0; i < inicioSemana; i++) {
+    html += '<div class="dia-card vazio"></div>';
+  }
+
+  const feriados = calcularFeriados(anoSelecionado);
+
+  for (let d = 1; d <= ultimoDia.getDate(); d++) {
+    const data  = new Date(anoSelecionado, mesSelecionado, d);
+    const key   = keyDia(data);
+    const tipo  = tipoFinal(data);
+    const ehHoje = data.getTime() === hoje.getTime();
+    const feriado = feriados[key];
+    const temNota = notas[key] && notas[key].length > 0;
+    const clima   = climaCache[key];
+    const ehWork  = tipo === 'work' || tipo === 'extra';
+
+    let cls = `dia-card ${tipo}`;
+    if (ehHoje) cls += ' hoje';
+
+    let climaHtml = '';
+    if (clima) {
+      const umStr = clima.umidade ? ` ${clima.umidade}%💧` : '';
+      climaHtml = `<div class="dia-clima">${wmoIcon(clima.code)}</div>
+                   <div class="dia-temp">${clima.min}°-${clima.max}°${umStr}</div>`;
+    }
+
+        const tipoLbl = feriado ? 'Feriado' : tipo === 'folga' ? 'Folga' : tipo === 'work' ? 'Turno' : tipo === 'extra' ? 'Extra' : '';
+    html += '<div class="' + cls + '" onclick="abrirDia(\'' + key + '\')">'
+          + (temNota ? '<div class="dia-nota-dot"></div>' : '')
+          + '<div class="dia-num">' + d + '</div>'
+          + '<div class="dia-tipo-lbl">' + tipoLbl + '</div>'
+          + climaHtml
+          + '</div>';
+  }
+
+  grade.innerHTML = html;
+  atualizarStatusBar();
+}
+
+// ═══════════════════════════════════════════════════
+// STATUS BAR
+// ═══════════════════════════════════════════════════
+function atualizarStatusBar() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const tipoHoje = tipoFinal(hoje);
+  const ehWork = tipoHoje === 'work' || tipoHoje === 'extra';
+
+  const chipHoje = document.getElementById('chip-hoje');
+  const dotHoje  = document.getElementById('chip-hoje-dot');
+  chipHoje.textContent = 'Hoje: ' + (ehWork ? 'Turno 🌙' : 'Folga ✅');
+  dotHoje.style.background = ehWork ? 'var(--org)' : 'var(--grn)';
+
+  // Próximo evento
+  let proxLabel = '';
+  for (let i = 1; i <= 10; i++) {
+    const d = new Date(hoje); d.setDate(d.getDate() + i);
+    const t = tipoFinal(d);
+    const mudou = (t === 'work' || t === 'extra') !== ehWork;
+    if (mudou) {
+      const dias = i === 1 ? 'amanhã' : `em ${i} dias`;
+      proxLabel = (t === 'work' || t === 'extra')
+        ? `Turno ${dias}`
+        : `Folga ${dias}`;
+      break;
+    }
+  }
+  document.getElementById('chip-prox').textContent = proxLabel;
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL DIA
+// ═══════════════════════════════════════════════════
+function abrirDia(key) {
+  diaSelecionado = key;
+  const [ano, mes, dia] = key.split('-').map(Number);
+  const data = new Date(ano, mes-1, dia);
+  const tipo = tipoFinal(data);
+  const feriados = calcularFeriados(ano);
+  const feriado  = feriados[key];
+
+  // Header
+  const diasSemana = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  document.getElementById('modal-data').textContent =
+    `${diasSemana[data.getDay()]}, ${dia} de ${MESES_PT[mes-1]}`;
+
+  const chip = document.getElementById('modal-tipo-chip');
+  const cores = {
+    folga:   { bg: 'var(--folga-bg)', bd: 'var(--folga-bd)', cor: 'var(--grn)', txt: '🟢 Folga' },
+    work:    { bg: 'var(--work-bg)',  bd: 'var(--work-bd)',  cor: 'var(--org)', txt: '🟠 Turno 18-6h' },
+    extra:   { bg: 'rgba(234,179,8,0.12)', bd: 'rgba(234,179,8,0.45)', cor: 'var(--yel)', txt: '⭐ Extra' },
+    feriado: { bg: 'var(--feriado-bg)', bd: 'var(--feriado-bd)', cor: 'var(--pur)', txt: '🎉 Feriado' },
+  };
+  const c = cores[tipo] || cores.folga;
+  chip.style.background = c.bg;
+  chip.style.border = `1px solid ${c.bd}`;
+  chip.style.color = c.cor;
+  chip.textContent = c.txt;
+
+  // Feriado
+  const feriadoBox = document.getElementById('modal-feriado');
+  if (feriado) {
+    feriadoBox.style.display = 'block';
+    document.getElementById('modal-feriado-nome').textContent = feriado;
+  } else {
+    feriadoBox.style.display = 'none';
+  }
+
+  // Botões tipo — ativar o correto
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('ativo'));
+  const btnAtivo = document.querySelector(`.t-${tipo}`);
+  if (btnAtivo) btnAtivo.classList.add('ativo');
+
+  // Clima
+  const clima = climaCache[key];
+  if (clima) {
+    document.getElementById('modal-clima-icon').textContent = wmoIcon(clima.code);
+    document.getElementById('modal-clima-temp').textContent = `${clima.max}°C / ${clima.min}°C`;
+    document.getElementById('modal-clima-desc').textContent = wmoDesc(clima.code);
+    const extras = [];
+    if (clima.chuva > 0) extras.push(`☔ ${clima.chuva}% chuva`);
+    if (clima.umidade)   extras.push(`💧 ${clima.umidade}% umidade`);
+
+    document.getElementById('modal-clima-extra').textContent = extras.join('  ·  ');
+
+    // Fase da lua no modal
+    const luaModal = calcularFaseLua(new Date(ano, mes-1, dia));
+    const luaEl = document.getElementById('modal-lua');
+    if (luaEl) luaEl.textContent = `${luaModal.emoji} ${luaModal.nome} · dia ${luaModal.pos} do ciclo`;
+  } else {
+    document.getElementById('modal-clima-icon').textContent = '📅';
+    document.getElementById('modal-clima-temp').textContent = '--°C';
+    document.getElementById('modal-clima-desc').textContent = 'Sem previsão disponível';
+    document.getElementById('modal-clima-extra').textContent = 'Disponível só para os próximos 7 dias';
+  }
+
+  // Checklist
+  renderChecklist();
+
+  document.getElementById('modal-dia').classList.add('show');
+  document.getElementById('check-novo-input').value = '';
+}
+
+function fecharModal() {
+  document.getElementById('modal-dia').classList.remove('show');
+  salvar();
+  renderizarMes();
+}
+
+function mudarTipo(tipo) {
+  if (!diaSelecionado) return;
+  overrides[diaSelecionado] = tipo;
+  // Atualizar chip
+  abrirDia(diaSelecionado);
+  toast('Dia atualizado!');
+}
+
+// ═══════════════════════════════════════════════════
+// CHECKLIST
+// ═══════════════════════════════════════════════════
+function renderChecklist() {
+  const lista = notas[diaSelecionado] || [];
+  const el = document.getElementById('check-lista');
+  el.innerHTML = lista.map((item, i) => `
+    <div class="check-item">
+      <div class="check-box ${item.done ? 'done' : ''}" onclick="toggleCheck(${i})"></div>
+      <span class="check-txt ${item.done ? 'done' : ''}">${item.txt}</span>
+      <span class="check-del" onclick="delCheck(${i})">×</span>
+    </div>
+  `).join('');
+}
+
+function addCheck() {
+  const inp = document.getElementById('check-novo-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  if (!notas[diaSelecionado]) notas[diaSelecionado] = [];
+  notas[diaSelecionado].push({ txt, done: false });
+  inp.value = '';
+  renderChecklist();
+}
+
+function toggleCheck(i) {
+  if (!notas[diaSelecionado]) return;
+  notas[diaSelecionado][i].done = !notas[diaSelecionado][i].done;
+  renderChecklist();
+}
+
+function delCheck(i) {
+  if (!notas[diaSelecionado]) return;
+  notas[diaSelecionado].splice(i, 1);
+  if (notas[diaSelecionado].length === 0) delete notas[diaSelecionado];
+  renderChecklist();
+}
+
+
+// ═══════════════════════════════════════════════════
+// CHECKLIST MENSAL
+// ═══════════════════════════════════════════════════
+let listaMes = {}; // { 'YYYY-MM': [{txt, id},...] }
+
+function chaveListaMes() {
+  return `${anoSelecionado}-${String(mesSelecionado+1).padStart(2,'0')}`;
+}
+
+function abrirListaMes() {
+  const k = chaveListaMes();
+  document.getElementById('lista-titulo').textContent =
+    '📋 ' + MESES_PT[mesSelecionado] + ' ' + anoSelecionado;
+  renderListaMes();
+  document.getElementById('modal-lista').classList.add('show');
+  document.getElementById('lista-novo-input').value = '';
+  setTimeout(() => document.getElementById('lista-novo-input').focus(), 300);
+}
+
+function fecharListaMes() {
+  document.getElementById('modal-lista').classList.remove('show');
+  salvar();
+}
+
+function renderListaMes() {
+  const k = chaveListaMes();
+  const itens = listaMes[k] || [];
+  const el = document.getElementById('lista-itens');
+  const contagem = document.getElementById('lista-contagem');
+  contagem.textContent = itens.length + (itens.length === 1 ? ' item' : ' itens');
+  el.innerHTML = itens.map((item, i) => `
+    <div class="lista-item" id="lista-item-${i}" onclick="concluirItem(${i})">
+      <span class="lista-check-icon">⬜</span>
+      <span class="lista-item-txt">${item.txt}</span>
+    </div>
+  `).join('');
+}
+
+function concluirItem(i) {
+  const el = document.getElementById('lista-item-' + i);
+  if (!el) return;
+  // Animar saída
+  el.querySelector('.lista-check-icon').textContent = '✅';
+  el.classList.add('feito');
+  // Remover após animação
+  setTimeout(() => {
+    const k = chaveListaMes();
+    if (listaMes[k]) {
+      listaMes[k].splice(i, 1);
+      if (listaMes[k].length === 0) delete listaMes[k];
+    }
+    renderListaMes();
+    salvar();
+  }, 350);
+}
+
+function addListaItem() {
+  const inp = document.getElementById('lista-novo-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  const k = chaveListaMes();
+  if (!listaMes[k]) listaMes[k] = [];
+  listaMes[k].push({ txt, id: Date.now() });
+  inp.value = '';
+  renderListaMes();
+}
+
+// ═══════════════════════════════════════════════════
+// SWIPE COM TOQUE
+// ═══════════════════════════════════════════════════
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.getElementById('calendario-wrap').addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.getElementById('calendario-wrap').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+  if (Math.abs(dx) > 60 && dy < 80) {
+    mudarMes(dx < 0 ? 1 : -1);
+  }
+}, { passive: true });
+
+function mudarMes(dir) {
+  const grade = document.getElementById('grade');
+  const clsSair = dir === 1 ? 'sair-esq' : 'sair-dir';
+  grade.classList.add(clsSair);
+  setTimeout(() => {
+    mesSelecionado += dir;
+    if (mesSelecionado > 11) { mesSelecionado = 0; anoSelecionado++; }
+    if (mesSelecionado < 0)  { mesSelecionado = 11; anoSelecionado--; }
+    const clsEntrar = dir === 1 ? 'entrar-dir' : 'entrar-esq';
+    grade.classList.remove(clsSair);
+    grade.classList.add(clsEntrar);
+    renderizarMes();
+    requestAnimationFrame(() => {
+      grade.classList.remove(clsEntrar);
+    });
+  }, 200);
+}
+
+// ═══════════════════════════════════════════════════
+// SALVAR / CARREGAR
+// ═══════════════════════════════════════════════════
+function salvar() {
+  localStorage.setItem('turno_overrides', JSON.stringify(overrides));
+  localStorage.setItem('turno_notas',     JSON.stringify(notas));
+  localStorage.setItem('turno_lista',     JSON.stringify(listaMes));
+}
+
+function carregar() {
+  try { overrides = JSON.parse(localStorage.getItem('turno_overrides') || '{}'); } catch(e) { overrides = {}; }
+  try { notas     = JSON.parse(localStorage.getItem('turno_notas')     || '{}'); } catch(e) { notas = {}; }
+  try { listaMes  = JSON.parse(localStorage.getItem('turno_lista')    || '{}'); } catch(e) { listaMes = {}; }
+  // Carregar cache do clima
+  try {
+    const cached = JSON.parse(localStorage.getItem('turno_clima') || 'null');
+    if (cached && Date.now() - cached.ts < 6 * 3600000) {
+      climaCache = cached.dados || {};
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════
+// HEADER DATE
+// ═══════════════════════════════════════════════════
+function atualizarHeaderDate() {
+  const hoje = new Date();
+  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  document.getElementById('header-date').innerHTML =
+    `${dias[hoje.getDay()]}., ${hoje.getDate()} de ${MESES_PT[hoje.getMonth()].substring(0,3).toUpperCase()}.<br>${anoSelecionado}`;
+}
+
+// ═══════════════════════════════════════════════════
+// SW
+// ═══════════════════════════════════════════════════
+function registrarSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MANIFEST DINÂMICO
+// ═══════════════════════════════════════════════════
+function injetarManifest() {
+  const ico = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="112" fill="#09090b"/>
+    <rect x="88" y="110" width="336" height="300" rx="36" fill="none" stroke="#f97316" stroke-width="26"/>
+    <line x1="88"  y1="196" x2="424" y2="196" stroke="#f97316" stroke-width="22"/>
+    <line x1="156" y1="64"  x2="156" y2="138" stroke="#f97316" stroke-width="28" stroke-linecap="round"/>
+    <line x1="356" y1="64"  x2="356" y2="138" stroke="#f97316" stroke-width="28" stroke-linecap="round"/>
+    <polyline points="290,228 224,316 268,316 202,410" fill="none" stroke="#22c55e" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+  const b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(ico)));
+  const manifest = {
+    name: 'MAX.CORE TURNO',
+    short_name: 'TURNO',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#09090b',
+    theme_color: '#09090b',
+    icons: [
+      { src: b64, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: b64, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  document.getElementById('manifest-placeholder').setAttribute('href', url);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  injetarManifest();
+  registrarSW();
+  carregar();
+  atualizarHeaderDate();
+  renderizarMes();
+
+  // Revelar app
+  setTimeout(() => {
+    document.getElementById('splash').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }, 500);
+  }, 1800);
+
+  // Buscar clima
+  buscarClima();
+
+  // Atualizar clima a cada hora
+  setInterval(buscarClima, 3600000);
+});
+
+// Fechar modal clicando fora
+document.getElementById('modal-dia').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-dia')) fecharModal();
+});
+
+document.getElementById('modal-lista').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-lista')) fecharListaMes();
+});
+</script>
+</body>
+</html>
